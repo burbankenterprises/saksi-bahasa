@@ -9,7 +9,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  useColorScheme,
+  ScrollView as HScrollView,
 } from "react-native";
 import { useState, useCallback } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -21,6 +21,18 @@ import { WordFamilySheet } from "@/components/WordFamilySheet";
 import { SettingsModal } from "@/components/SettingsModal";
 import { useSettings } from "@/hooks/useSettings";
 import { useTranslate, useGetWordFamily } from "@workspace/api-client-react";
+import type { IndonesianRegion } from "@workspace/api-client-react/src/generated/api.schemas";
+
+const REGIONS: { value: IndonesianRegion; label: string; flag: string }[] = [
+  { value: "jakarta",  label: "Jakarta",  flag: "🏙️" },
+  { value: "java",     label: "Jawa",     flag: "🌋" },
+  { value: "sunda",    label: "Sunda",    flag: "🌿" },
+  { value: "minang",   label: "Minang",   flag: "🏔️" },
+  { value: "batak",    label: "Batak",    flag: "🪘" },
+  { value: "bali",     label: "Bali",     flag: "🌺" },
+  { value: "makassar", label: "Makassar", flag: "⚓" },
+  { value: "manado",   label: "Manado",   flag: "🌊" },
+];
 
 interface TranslationStyle {
   indonesian: string;
@@ -172,6 +184,7 @@ export default function TranslateScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const [inputText, setInputText] = useState("");
+  const [region, setRegion] = useState<IndonesianRegion>("jakarta");
   const [result, setResult] = useState<TranslationResult | null>(null);
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [selectedContext, setSelectedContext] = useState<string>("");
@@ -201,13 +214,14 @@ export default function TranslateScreen() {
       const data = await translateMutation.mutateAsync({
         data: {
           text: inputText.trim(),
+          region,
           jwTerms: settings.jwTerms.map(({ english, indonesian }) => ({ english, indonesian })),
           excludedWords: settings.excludedWords.map((w) => w.word),
         },
       });
       setResult(data as unknown as TranslationResult);
     } catch {}
-  }, [inputText, translateMutation, settings]);
+  }, [inputText, region, translateMutation, settings]);
 
   const handleCopy = useCallback(async (key: string, text: string) => {
     Haptics.selectionAsync();
@@ -277,6 +291,50 @@ export default function TranslateScreen() {
             multiline
             textAlignVertical="top"
           />
+
+          <View style={[styles.regionRow, { borderTopColor: colors.border }]}>
+            <Text style={[styles.regionLabel, { color: colors.mutedForeground }]}>
+              Casual dialect
+            </Text>
+            <HScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.regionChips}
+              keyboardShouldPersistTaps="handled"
+            >
+              {REGIONS.map((r) => {
+                const active = r.value === region;
+                return (
+                  <TouchableOpacity
+                    key={r.value}
+                    onPress={() => {
+                      Haptics.selectionAsync();
+                      setRegion(r.value);
+                    }}
+                    style={[
+                      styles.chip,
+                      {
+                        backgroundColor: active ? colors.primary : colors.secondary,
+                        borderColor: active ? colors.primary : colors.border,
+                      },
+                    ]}
+                    activeOpacity={0.75}
+                  >
+                    <Text style={styles.chipFlag}>{r.flag}</Text>
+                    <Text
+                      style={[
+                        styles.chipLabel,
+                        { color: active ? colors.primaryForeground : colors.foreground },
+                      ]}
+                    >
+                      {r.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </HScrollView>
+          </View>
+
           <TouchableOpacity
             style={[
               styles.translateButton,
@@ -350,19 +408,26 @@ export default function TranslateScreen() {
             <Text style={[styles.tapHint, { color: colors.mutedForeground }]}>
               Tap any word for details
             </Text>
-            {STYLE_CONFIG.map((cfg) => (
-              <TranslationCard
-                key={cfg.key}
-                styleKey={cfg.key}
-                label={cfg.label}
-                icon={cfg.icon}
-                description={cfg.description}
-                translation={result[cfg.key]}
-                onWordPress={handleWordPress}
-                copied={copiedKey === cfg.key}
-                onCopy={() => handleCopy(cfg.key, result[cfg.key].indonesian)}
-              />
-            ))}
+            {STYLE_CONFIG.map((cfg) => {
+              const activeR = REGIONS.find((r) => r.value === region)!;
+              return (
+                <TranslationCard
+                  key={cfg.key}
+                  styleKey={cfg.key}
+                  label={cfg.label}
+                  icon={cfg.icon}
+                  description={
+                    cfg.key === "casual"
+                      ? `${activeR.flag} ${activeR.label} slang`
+                      : cfg.description
+                  }
+                  translation={result[cfg.key]}
+                  onWordPress={handleWordPress}
+                  copied={copiedKey === cfg.key}
+                  onCopy={() => handleCopy(cfg.key, result[cfg.key].indonesian)}
+                />
+              );
+            })}
           </View>
         )}
       </ScrollView>
@@ -420,6 +485,12 @@ const styles = StyleSheet.create({
   },
   inputCard: { borderRadius: 16, borderWidth: 1, overflow: "hidden" },
   textInput: { padding: 16, fontSize: 16, minHeight: 110, lineHeight: 24 },
+  regionRow: { borderTopWidth: 1, paddingTop: 10, paddingBottom: 8, paddingHorizontal: 14, gap: 8 },
+  regionLabel: { fontSize: 11, fontFamily: "Inter_500Medium", textTransform: "uppercase", letterSpacing: 0.6 },
+  regionChips: { flexDirection: "row", gap: 8, paddingBottom: 2 },
+  chip: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20, borderWidth: 1.5 },
+  chipFlag: { fontSize: 13 },
+  chipLabel: { fontSize: 12, fontFamily: "Inter_500Medium" },
   translateButton: {
     flexDirection: "row",
     alignItems: "center",

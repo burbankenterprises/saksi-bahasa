@@ -3,6 +3,13 @@ import { useTranslate } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Loader2,
   Moon,
   Sun,
@@ -16,10 +23,22 @@ import { useTheme } from "@/components/theme-provider";
 import { WordFamilySheet } from "@/components/word-family-sheet";
 import { SettingsSheet } from "@/components/settings-sheet";
 import { useSettings } from "@/hooks/useSettings";
-import type { TranslationStyle } from "@workspace/api-client-react/src/generated/api.schemas";
+import type { TranslationStyle, IndonesianRegion } from "@workspace/api-client-react/src/generated/api.schemas";
+
+const REGIONS: { value: IndonesianRegion; label: string; flag: string }[] = [
+  { value: "jakarta",  label: "Jakarta / Betawi",       flag: "🏙️" },
+  { value: "java",     label: "Jawa (Central/East)",     flag: "🌋" },
+  { value: "sunda",    label: "Sunda (West Java)",        flag: "🌿" },
+  { value: "minang",   label: "Minang (West Sumatra)",    flag: "🏔️" },
+  { value: "batak",    label: "Batak (North Sumatra)",    flag: "🪘" },
+  { value: "bali",     label: "Bali",                     flag: "🌺" },
+  { value: "makassar", label: "Makassar / Bugis",         flag: "⚓" },
+  { value: "manado",   label: "Manado (North Sulawesi)",  flag: "🌊" },
+];
 
 export default function Home() {
   const [text, setText] = useState("");
+  const [region, setRegion] = useState<IndonesianRegion>("jakarta");
   const { theme, setTheme } = useTheme();
   const [selectedWord, setSelectedWord] = useState<{ word: string; context: string } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -41,11 +60,14 @@ export default function Home() {
     translateText({
       data: {
         text,
+        region,
         jwTerms: settings.jwTerms.map(({ english, indonesian }) => ({ english, indonesian })),
         excludedWords: settings.excludedWords.map((w) => w.word),
       },
     });
   };
+
+  const activeRegion = REGIONS.find((r) => r.value === region)!;
 
   const handleCopy = (key: string, value: string) => {
     navigator.clipboard.writeText(value);
@@ -82,7 +104,7 @@ export default function Home() {
     {
       key: "casual",
       label: "Casual",
-      badge: "Friendly / Slang",
+      badge: `${activeRegion.flag} ${activeRegion.label}`,
       dot: "bg-green-500",
       data: translations?.casual,
     },
@@ -150,11 +172,29 @@ export default function Home() {
                 if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleTranslate();
               }}
             />
-            <div className="p-3 bg-muted/30 border-t flex justify-end">
+            <div className="p-3 bg-muted/30 border-t flex items-center gap-3">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <span className="text-xs font-medium text-muted-foreground whitespace-nowrap shrink-0">
+                  Casual dialect
+                </span>
+                <Select value={region} onValueChange={(v) => setRegion(v as IndonesianRegion)}>
+                  <SelectTrigger className="h-8 text-xs rounded-lg border-0 bg-background/60 min-w-0 flex-1 max-w-[200px] focus:ring-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {REGIONS.map((r) => (
+                      <SelectItem key={r.value} value={r.value} className="text-sm">
+                        <span className="mr-1.5">{r.flag}</span>
+                        {r.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <Button
                 onClick={handleTranslate}
                 disabled={!text.trim() || isPending}
-                className="rounded-xl px-6 font-medium shadow-sm"
+                className="rounded-xl px-6 font-medium shadow-sm shrink-0"
               >
                 {isPending ? (
                   <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Translating...</>

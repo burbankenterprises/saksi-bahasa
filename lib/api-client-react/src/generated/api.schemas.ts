@@ -14,9 +14,21 @@ export interface JWTermOverride {
   indonesian: string;
 }
 
+export type IndonesianRegion =
+  | "jakarta"
+  | "java"
+  | "sunda"
+  | "minang"
+  | "batak"
+  | "bali"
+  | "makassar"
+  | "manado";
+
 export interface TranslateRequest {
   /** English text to translate */
   text: string;
+  /** Indonesian region for casual/slang style */
+  region?: IndonesianRegion;
   /** Custom JW terminology overrides */
   jwTerms?: JWTermOverride[];
   /** Words to exclude from all outputs */

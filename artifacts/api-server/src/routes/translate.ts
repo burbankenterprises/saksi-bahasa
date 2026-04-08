@@ -28,7 +28,7 @@ Your translations must follow these critical rules:
    - "worship" → "ibadah"
 
 2. Produce three distinct registers:
-   a. "casual" — very relaxed, like texting a close friend. Can use informal pronouns (lu/gue instead of kamu/aku), colloquial shortening, or common slang. Natural, warm, flowing.
+   a. "casual" — very relaxed, like texting a close friend. The specific regional slang/dialect will be specified in the user message. Use that dialect's authentic slang, pronouns, and colloquialisms naturally. If no region is specified, default to Jakarta/Betawi (lu/gue, gw).
    b. "polite" — standard respectful Indonesian (Baku) suitable for talking to a stranger or acquaintance in public. Uses "Anda/Bapak/Ibu" where appropriate, proper grammar.
    c. "formal" — elevated formal style suitable for giving a public discourse or comment at a Jehovah's Witnesses meeting. No contractions, complete sentences, proper honorifics.
 
@@ -96,7 +96,20 @@ router.post("/translate", async (req, res) => {
     return;
   }
 
-  const { text, jwTerms, excludedWords } = parseResult.data;
+  const { text, region, jwTerms, excludedWords } = parseResult.data;
+
+  const REGION_DESCRIPTIONS: Record<string, string> = {
+    jakarta: "Jakarta/Betawi dialect — use lu/gue/gw pronouns, common Betawi slang (e.g. kagak, nih, deh, dong, loh, emang, nyokap, bokap, gitu), casual big-city feel",
+    java: "Central/East Javanese dialect — blend standard Indonesian with Javanese flavour: use 'opo' (what), 'yo/lah' (yeah/right), 'mas' (bro), 'mbak' (sis), 'ra' (tidak), 'dab' (buddy from Jogja), 'mantap', 'gayeng', natural Javanese cadence",
+    sunda: "Sundanese/West Java dialect — blend Indonesian with Sundanese flavour: 'maneh' (you, informal), 'abdi' (I, humble), 'atuh' (particle), 'mah' (emphasis), 'euy' (particle), 'kumaha' (how), 'nuhun' (thanks) where natural",
+    minang: "Minang/West Sumatera dialect — blend Indonesian with Minang flavour: 'ambo' (I), 'den' (I/me), 'waang/ang' (you), 'awak' (us/self), 'iyo' (yes), 'ndak' (no), warm Minang hospitality tone",
+    batak: "Batak/North Sumatera dialect — blend Indonesian with Batak directness and expressions: 'horas' (greetings), 'ito' (sibling/friend), 'Abang/Kakak' for address, strong emphatic Batak speech style, 'pokoknya' frequently, direct and assertive tone",
+    bali: "Balinese dialect — blend Indonesian with Balinese flavour: 'tiang' (I, humble), 'jerone/ragane' (you, polite), 'suksma' (thank you), 'nggih' (yes), soft Balinese politeness, spiritual warmth",
+    makassar: "Makassar/South Sulawesi dialect — blend Indonesian with Makassar/Bugis flavour: 'ko' (you), 'ki' (polite suffix), 'pale' (then/so), 'ji' (just/only), 'mi' (already/particle), 'na' (it/him/her prefix), bold and proud Bugis-Makassar expression style",
+    manado: "Manado/North Sulawesi dialect — blend Indonesian with Manado Malay: 'su' (sudah/already), 'mo' (mau/want), 'jo' (saja/just), 'kong' (then/so), 'mar' (tapi/but), 'ngana' (kamu/you), 'kita' as first person singular, upbeat Manado energy",
+  };
+
+  const regionDesc = REGION_DESCRIPTIONS[region ?? "jakarta"];
 
   if (!text || text.trim().length === 0) {
     res.status(400).json({ error: "Text is required" });
@@ -125,7 +138,10 @@ router.post("/translate", async (req, res) => {
       max_tokens: 4096,
       messages: [
         { role: "system", content: systemContent },
-        { role: "user", content: `Translate this English text to Indonesian in three styles:\n\n${text}` },
+        {
+          role: "user",
+          content: `Translate this English text to Indonesian in three styles.\n\nFor the CASUAL style specifically, use the following regional dialect: ${regionDesc}.\n\nEnglish text:\n${text}`,
+        },
       ],
       response_format: { type: "json_object" },
     });

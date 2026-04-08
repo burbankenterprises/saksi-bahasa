@@ -18,8 +18,25 @@ export const HealthCheckResponse = zod.object({
 /**
  * @summary Translate English text to Indonesian in 3 styles
  */
+export const INDONESIAN_REGIONS = [
+  "jakarta",
+  "java",
+  "sunda",
+  "minang",
+  "batak",
+  "bali",
+  "makassar",
+  "manado",
+] as const;
+
+export type IndonesianRegion = (typeof INDONESIAN_REGIONS)[number];
+
 export const TranslateBody = zod.object({
   text: zod.string().describe("English text to translate"),
+  region: zod
+    .enum(INDONESIAN_REGIONS)
+    .optional()
+    .describe("Indonesian region for casual/slang style"),
   jwTerms: zod
     .array(zod.object({ english: zod.string(), indonesian: zod.string() }))
     .optional()
