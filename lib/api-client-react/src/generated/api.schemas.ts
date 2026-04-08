@@ -40,6 +40,8 @@ export interface TranslationStyle {
   indonesian: string;
   /** Literal word-for-word translation back to English for grammar study */
   literal: string;
+  /** Casual only: explanation of slang terms, their origins, and how popular they are today */
+  slangExplanation?: string;
 }
 
 export interface TranslateResponse {

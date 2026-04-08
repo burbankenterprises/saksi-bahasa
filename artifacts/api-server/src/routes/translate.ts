@@ -34,9 +34,14 @@ Your translations must follow these critical rules:
 
 3. For each translation, also provide a "literal" rendering — a word-for-word or phrase-for-phrase English gloss that shows the Indonesian grammatical structure and word order. This helps English speakers understand Indonesian grammar patterns. Keep it a bit rough/literal to be educational.
 
+4. For the casual translation ONLY, also write a "slangExplanation" — a concise 2–4 sentence paragraph in English that:
+   - Names the specific slang words or particles used and explains why each was chosen for this sentence
+   - Gives a brief note on the linguistic origin or cultural influence of those terms (e.g. Betawi Malay, Dutch borrowing, Javanese substrate, youth internet culture, etc.)
+   - Describes how mainstream or popular those terms are today among Indonesian speakers and across generations (e.g. widely used by Gen Z and Millennials nationwide, more regional, fading from use, etc.)
+
 Always respond with valid JSON exactly in this structure:
 {
-  "casual": { "indonesian": "...", "literal": "..." },
+  "casual": { "indonesian": "...", "literal": "...", "slangExplanation": "..." },
   "polite": { "indonesian": "...", "literal": "..." },
   "formal": { "indonesian": "...", "literal": "..." }
 }`;

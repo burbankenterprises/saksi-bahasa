@@ -175,6 +175,14 @@ function TranslationCard({
             {translation.literal}
           </Text>
         </View>
+        {styleKey === "casual" && translation.slangExplanation ? (
+          <View style={[styles.slangBox, { backgroundColor: "#22c55e12", borderColor: "#22c55e30" }]}>
+            <Text style={[styles.slangLabel, { color: "#16a34a" }]}>Slang Notes</Text>
+            <Text style={[styles.slangText, { color: colors.mutedForeground }]}>
+              {translation.slangExplanation}
+            </Text>
+          </View>
+        ) : null}
       </View>
     </View>
   );
@@ -562,5 +570,23 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     lineHeight: 20,
     fontStyle: "italic",
+  },
+  slangBox: {
+    borderRadius: 10,
+    borderWidth: 1,
+    padding: 10,
+    gap: 5,
+    marginTop: 2,
+  },
+  slangLabel: {
+    fontSize: 10,
+    fontFamily: "Inter_600SemiBold",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+  },
+  slangText: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    lineHeight: 20,
   },
 });

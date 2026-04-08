@@ -255,6 +255,16 @@ export default function Home() {
                     <div className={`pt-3 border-t ${highlight ? "border-primary/20" : "border-border/50"}`}>
                       <p className="text-sm text-muted-foreground font-mono">{data.literal}</p>
                     </div>
+                    {key === "casual" && data.slangExplanation && (
+                      <div className="mt-3 pt-3 border-t border-green-500/20 bg-green-500/5 rounded-xl px-3 py-2.5">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-green-600 dark:text-green-400 mb-1.5">
+                          Slang Notes
+                        </p>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          {data.slangExplanation}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ) : null
               )}

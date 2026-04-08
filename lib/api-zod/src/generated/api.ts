@@ -56,6 +56,11 @@ export const TranslateResponse = zod.object({
         .describe(
           "Literal word-for-word translation back to English for grammar study",
         ),
+      slangExplanation: zod
+        .string()
+        .describe(
+          "A short paragraph explaining the slang terms used, why they were chosen, their origin/cultural influence, and how mainstream they are among Indonesian generations today",
+        ),
     })
     .describe("Casual\/slang style — like talking with close friends"),
   polite: zod
