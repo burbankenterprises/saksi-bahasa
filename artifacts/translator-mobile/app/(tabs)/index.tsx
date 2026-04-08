@@ -1,7 +1,8 @@
 import {
   ActivityIndicator,
   Keyboard,
-  Pressable,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,14 +10,12 @@ import {
   TouchableOpacity,
   View,
   useColorScheme,
-  Platform,
 } from "react-native";
 import { useState, useCallback } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
-import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
 import { WordFamilySheet } from "@/components/WordFamilySheet";
 import { useTranslate, useGetWordFamily } from "@workspace/api-client-react";
 
@@ -241,20 +240,17 @@ export default function TranslateScreen() {
   const bottomPad = isWeb ? 34 : insets.bottom;
 
   return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: colors.background },
-      ]}
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <KeyboardAwareScrollViewCompat
+      <ScrollView
         style={styles.scroll}
         contentContainerStyle={[
           styles.scrollContent,
           { paddingTop: topPad + 16, paddingBottom: bottomPad + 24 },
         ]}
         keyboardShouldPersistTaps="handled"
-        bottomOffset={24}
       >
         <View style={styles.header}>
           <Text style={[styles.appTitle, { color: colors.foreground }]}>
@@ -401,7 +397,7 @@ export default function TranslateScreen() {
             ))}
           </View>
         )}
-      </KeyboardAwareScrollViewCompat>
+      </ScrollView>
 
       <WordFamilySheet
         visible={sheetVisible}
@@ -411,7 +407,7 @@ export default function TranslateScreen() {
         isLoading={wordFamilyMutation.isPending}
         isError={wordFamilyMutation.isError}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
