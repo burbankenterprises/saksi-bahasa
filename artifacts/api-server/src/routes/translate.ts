@@ -101,7 +101,10 @@ router.post("/translate", async (req, res) => {
     return;
   }
 
-  const { text, region, jwTerms, excludedWords } = parseResult.data;
+  const { text, region, localSlang, jwTerms, excludedWords } = parseResult.data;
+
+  const UNIVERSAL_SLANG_DESC =
+    "Universal Indonesian — use casual Indonesian that is understood nationwide. Draw from Jakarta-influenced youth and internet slang that has gone mainstream across all regions: gue/lu/gw (I/you), dong (softener/emphasis), nih (here/see?), sih (softener), banget (very/so much), baper (overly emotional), mager (too lazy to move), gabut (bored/idle), kuy (let's go), mantap (awesome), gitu (like that), emang (indeed/really), nggak/gak (no/not). Sentence structure should feel natural and relaxed but fully comprehensible to any Indonesian speaker regardless of region. A single well-known regional term is acceptable only if it has gone mainstream nationally — avoid heavy regional dialect markers or grammar that would confuse someone from a different island.";
 
   const REGION_DESCRIPTIONS: Record<string, string> = {
     jakarta: "Jakarta/Betawi dialect — use lu/gue/gw pronouns, common Betawi slang (e.g. kagak, nih, deh, dong, loh, emang, nyokap, bokap, gitu), casual big-city feel",
@@ -114,7 +117,9 @@ router.post("/translate", async (req, res) => {
     manado: "Manado/North Sulawesi dialect — blend Indonesian with Manado Malay: 'su' (sudah/already), 'mo' (mau/want), 'jo' (saja/just), 'kong' (then/so), 'mar' (tapi/but), 'ngana' (kamu/you), 'kita' as first person singular, upbeat Manado energy",
   };
 
-  const regionDesc = REGION_DESCRIPTIONS[region ?? "jakarta"];
+  const regionDesc = localSlang
+    ? REGION_DESCRIPTIONS[region ?? "jakarta"]
+    : UNIVERSAL_SLANG_DESC;
 
   if (!text || text.trim().length === 0) {
     res.status(400).json({ error: "Text is required" });

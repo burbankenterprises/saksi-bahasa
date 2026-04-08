@@ -37,6 +37,10 @@ export const TranslateBody = zod.object({
     .enum(INDONESIAN_REGIONS)
     .optional()
     .describe("Indonesian region for casual/slang style"),
+  localSlang: zod
+    .boolean()
+    .optional()
+    .describe("When true, use regional dialect slang; when false (default), use universal Indonesian slang"),
   jwTerms: zod
     .array(zod.object({ english: zod.string(), indonesian: zod.string() }))
     .optional()

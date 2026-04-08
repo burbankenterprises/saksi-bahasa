@@ -39,6 +39,7 @@ const REGIONS: { value: IndonesianRegion; label: string; flag: string }[] = [
 export default function Home() {
   const [text, setText] = useState("");
   const [region, setRegion] = useState<IndonesianRegion>("jakarta");
+  const [localSlang, setLocalSlang] = useState(false);
   const { theme, setTheme } = useTheme();
   const [selectedWord, setSelectedWord] = useState<{ word: string; context: string } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -61,6 +62,7 @@ export default function Home() {
       data: {
         text,
         region,
+        localSlang,
         jwTerms: settings.jwTerms.map(({ english, indonesian }) => ({ english, indonesian })),
         excludedWords: settings.excludedWords.map((w) => w.word),
       },
@@ -104,7 +106,7 @@ export default function Home() {
     {
       key: "casual",
       label: "Casual",
-      badge: `${activeRegion.flag} ${activeRegion.label}`,
+      badge: localSlang ? `${activeRegion.flag} ${activeRegion.label}` : "🌐 Universal",
       dot: "bg-green-500",
       data: translations?.casual,
     },
@@ -174,22 +176,34 @@ export default function Home() {
             />
             <div className="p-3 bg-muted/30 border-t flex items-center gap-3">
               <div className="flex items-center gap-2 flex-1 min-w-0">
-                <span className="text-xs font-medium text-muted-foreground whitespace-nowrap shrink-0">
-                  Casual dialect
-                </span>
-                <Select value={region} onValueChange={(v) => setRegion(v as IndonesianRegion)}>
-                  <SelectTrigger className="h-8 text-xs rounded-lg border-0 bg-background/60 min-w-0 flex-1 max-w-[200px] focus:ring-0">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {REGIONS.map((r) => (
-                      <SelectItem key={r.value} value={r.value} className="text-sm">
-                        <span className="mr-1.5">{r.flag}</span>
-                        {r.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <button
+                  type="button"
+                  onClick={() => setLocalSlang((v) => !v)}
+                  title={localSlang ? "Switch to universal Indonesian slang" : "Switch to regional dialect slang"}
+                  className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border transition-all shrink-0 cursor-pointer select-none ${
+                    localSlang
+                      ? "bg-amber-500/15 border-amber-500/40 text-amber-500"
+                      : "bg-muted/60 border-border text-muted-foreground hover:border-muted-foreground/50"
+                  }`}
+                >
+                  <span>{localSlang ? "🗺️" : "🌐"}</span>
+                  {localSlang ? "Regional" : "Universal"}
+                </button>
+                <div className={`transition-opacity flex-1 min-w-0 ${localSlang ? "opacity-100" : "opacity-35 pointer-events-none"}`}>
+                  <Select value={region} onValueChange={(v) => setRegion(v as IndonesianRegion)}>
+                    <SelectTrigger className="h-8 text-xs rounded-lg border-0 bg-background/60 w-full focus:ring-0">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {REGIONS.map((r) => (
+                        <SelectItem key={r.value} value={r.value} className="text-sm">
+                          <span className="mr-1.5">{r.flag}</span>
+                          {r.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <Button
                 onClick={handleTranslate}

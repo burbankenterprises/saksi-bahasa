@@ -193,6 +193,7 @@ export default function TranslateScreen() {
   const insets = useSafeAreaInsets();
   const [inputText, setInputText] = useState("");
   const [region, setRegion] = useState<IndonesianRegion>("jakarta");
+  const [localSlang, setLocalSlang] = useState(false);
   const [result, setResult] = useState<TranslationResult | null>(null);
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [selectedContext, setSelectedContext] = useState<string>("");
@@ -223,13 +224,14 @@ export default function TranslateScreen() {
         data: {
           text: inputText.trim(),
           region,
+          localSlang,
           jwTerms: settings.jwTerms.map(({ english, indonesian }) => ({ english, indonesian })),
           excludedWords: settings.excludedWords.map((w) => w.word),
         },
       });
       setResult(data as unknown as TranslationResult);
     } catch {}
-  }, [inputText, region, translateMutation, settings]);
+  }, [inputText, region, localSlang, translateMutation, settings]);
 
   const handleCopy = useCallback(async (key: string, text: string) => {
     Haptics.selectionAsync();
@@ -301,46 +303,70 @@ export default function TranslateScreen() {
           />
 
           <View style={[styles.regionRow, { borderTopColor: colors.border }]}>
-            <Text style={[styles.regionLabel, { color: colors.mutedForeground }]}>
-              Casual dialect
-            </Text>
-            <HScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.regionChips}
-              keyboardShouldPersistTaps="handled"
-            >
-              {REGIONS.map((r) => {
-                const active = r.value === region;
-                return (
-                  <TouchableOpacity
-                    key={r.value}
-                    onPress={() => {
-                      Haptics.selectionAsync();
-                      setRegion(r.value);
-                    }}
-                    style={[
-                      styles.chip,
-                      {
-                        backgroundColor: active ? colors.primary : colors.secondary,
-                        borderColor: active ? colors.primary : colors.border,
-                      },
-                    ]}
-                    activeOpacity={0.75}
-                  >
-                    <Text style={styles.chipFlag}>{r.flag}</Text>
-                    <Text
+            <View style={styles.regionHeaderRow}>
+              <Text style={[styles.regionLabel, { color: colors.mutedForeground }]}>
+                Casual slang
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  setLocalSlang((v) => !v);
+                }}
+                style={[
+                  styles.slangToggleBtn,
+                  {
+                    backgroundColor: localSlang ? colors.primary + "22" : colors.secondary,
+                    borderColor: localSlang ? colors.primary + "55" : colors.border,
+                  },
+                ]}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.slangToggleEmoji}>{localSlang ? "🗺️" : "🌐"}</Text>
+                <Text style={[styles.slangToggleText, { color: localSlang ? colors.primary : colors.mutedForeground }]}>
+                  {localSlang ? "Regional" : "Universal"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ opacity: localSlang ? 1 : 0.3 }} pointerEvents={localSlang ? "auto" : "none"}>
+              <HScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.regionChips}
+                keyboardShouldPersistTaps="handled"
+                scrollEnabled={localSlang}
+              >
+                {REGIONS.map((r) => {
+                  const active = r.value === region;
+                  return (
+                    <TouchableOpacity
+                      key={r.value}
+                      onPress={() => {
+                        Haptics.selectionAsync();
+                        setRegion(r.value);
+                      }}
                       style={[
-                        styles.chipLabel,
-                        { color: active ? colors.primaryForeground : colors.foreground },
+                        styles.chip,
+                        {
+                          backgroundColor: active ? colors.primary : colors.secondary,
+                          borderColor: active ? colors.primary : colors.border,
+                        },
                       ]}
+                      activeOpacity={0.75}
                     >
-                      {r.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </HScrollView>
+                      <Text style={styles.chipFlag}>{r.flag}</Text>
+                      <Text
+                        style={[
+                          styles.chipLabel,
+                          { color: active ? colors.primaryForeground : colors.foreground },
+                        ]}
+                      >
+                        {r.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </HScrollView>
+            </View>
           </View>
 
           <TouchableOpacity
@@ -494,8 +520,12 @@ const styles = StyleSheet.create({
   inputCard: { borderRadius: 16, borderWidth: 1, overflow: "hidden" },
   textInput: { padding: 16, fontSize: 16, minHeight: 110, lineHeight: 24 },
   regionRow: { borderTopWidth: 1, paddingTop: 10, paddingBottom: 8, paddingHorizontal: 14, gap: 8 },
+  regionHeaderRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   regionLabel: { fontSize: 11, fontFamily: "Inter_500Medium", textTransform: "uppercase", letterSpacing: 0.6 },
   regionChips: { flexDirection: "row", gap: 8, paddingBottom: 2 },
+  slangToggleBtn: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, borderWidth: 1.5 },
+  slangToggleEmoji: { fontSize: 13 },
+  slangToggleText: { fontSize: 12, fontFamily: "Inter_500Medium" },
   chip: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20, borderWidth: 1.5 },
   chipFlag: { fontSize: 13 },
   chipLabel: { fontSize: 12, fontFamily: "Inter_500Medium" },

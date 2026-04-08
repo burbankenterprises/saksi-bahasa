@@ -29,6 +29,8 @@ export interface TranslateRequest {
   text: string;
   /** Indonesian region for casual/slang style */
   region?: IndonesianRegion;
+  /** When true, use regional dialect slang; when false (default), use universal Indonesian slang */
+  localSlang?: boolean;
   /** Custom JW terminology overrides */
   jwTerms?: JWTermOverride[];
   /** Words to exclude from all outputs */
