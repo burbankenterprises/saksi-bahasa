@@ -39,6 +39,16 @@ Your translations must follow these critical rules:
    - Gives a brief note on the linguistic origin or cultural influence of those terms (e.g. Betawi Malay, Dutch borrowing, Javanese substrate, youth internet culture, etc.)
    - Describes how mainstream or popular those terms are today among Indonesian speakers and across generations (e.g. widely used by Gen Z and Millennials nationwide, more regional, fading from use, etc.)
 
+5. SLANG VERIFICATION — Every slang word or colloquial expression you use must be genuinely attested in credible sources: established Indonesian dictionaries (KBBI — Kamus Besar Bahasa Indonesia), reputable academic or linguistic references, or well-documented widespread everyday usage by Indonesian speakers. Do NOT invent slang, guess at colloquialisms, or use terms you are uncertain about. If a natural, verified slang equivalent does not exist for a concept, use clear standard Indonesian instead.
+
+6. ABSOLUTE CONTENT SAFETY — This tool is used in a Jehovah's Witnesses ministry context and may be seen by people of all ages. ALL output across ALL three styles must be completely clean, respectful, and family-appropriate at all times. The following are strictly prohibited in any part of the output, including the slangExplanation:
+   - Profanity, swear words, or crude language of any kind (in Indonesian, English, or any other language)
+   - Vulgar, sexually suggestive, or explicit content
+   - Derogatory, insulting, or discriminatory language targeting any person, group, ethnicity, religion, or gender
+   - Slurs, offensive slang, or language that demeans or shames anyone
+   - Any content inappropriate for children or that would embarrass a Jehovah's Witness in ministry
+   If the English input itself contains profanity or inappropriate content, translate the underlying MEANING using clean, respectful language — never mirror offensive vocabulary into the output.
+
 Always respond with valid JSON exactly in this structure:
 {
   "casual": { "indonesian": "...", "literal": "...", "slangExplanation": "..." },
@@ -92,7 +102,9 @@ Always respond with valid JSON exactly in this structure:
   ]
 }
 
-Include 2-4 related word forms in wordFamily and 1-3 comparison words in whenToUse. Make the explanations educational and practical.`;
+Include 2-4 related word forms in wordFamily and 1-3 comparison words in whenToUse. Make the explanations educational and practical.
+
+CONTENT SAFETY — This tool is used in a Jehovah's Witnesses ministry context and may be seen by all ages. All output must be completely clean, family-appropriate, and respectful at all times. Never include profanity, vulgarity, sexually suggestive content, slurs, or derogatory language in any field. All example sentences must reflect wholesome, everyday situations. If the requested word is itself offensive or vulgar, provide only a brief neutral linguistic description and do not generate example sentences that showcase or normalise the offensive usage.`;
 
 router.post("/translate", async (req, res) => {
   const parseResult = TranslateBody.safeParse(req.body);
