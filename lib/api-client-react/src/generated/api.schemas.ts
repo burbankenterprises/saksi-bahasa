@@ -8,3 +8,73 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface TranslateRequest {
+  /** English text to translate */
+  text: string;
+}
+
+export interface TranslationStyle {
+  /** The Indonesian translation */
+  indonesian: string;
+  /** Literal word-for-word translation back to English for grammar study */
+  literal: string;
+}
+
+export interface TranslateResponse {
+  /** Casual/slang style — like talking with close friends */
+  casual: TranslationStyle;
+  /** Polite public style — talking to a stranger in public */
+  polite: TranslationStyle;
+  /** Formal JW discourse style — suitable for Jehovah's Witnesses meetings/talks */
+  formal: TranslationStyle;
+}
+
+export interface WordFamilyRequest {
+  /** The Indonesian word to explain */
+  word: string;
+  /** Optional surrounding sentence for context */
+  context?: string;
+}
+
+export interface WordRelated {
+  word: string;
+  meaning: string;
+  /** Example sentence in Indonesian */
+  exampleIndonesian: string;
+  /** English translation of the example */
+  exampleEnglish: string;
+}
+
+export interface WordUsageComparison {
+  word: string;
+  /** e.g. "THIS WORD" or "KEY DIFFERENCE" */
+  label: string;
+  whatItMeans?: string;
+  whenToUse: string;
+  exampleIndonesian: string;
+  exampleEnglish: string;
+  /** True if this is the word the user clicked (not a comparison word) */
+  isThisWord: boolean;
+}
+
+export type WordFamilyResponseInActionItem = {
+  indonesian: string;
+  english: string;
+};
+
+export interface WordFamilyResponse {
+  word: string;
+  /** Short English meaning (e.g. "room; space") */
+  briefMeaning: string;
+  /** 3 example sentences showing the word in action */
+  inAction: WordFamilyResponseInActionItem[];
+  /** Related word forms (root, derivatives) */
+  wordFamily: WordRelated[];
+  /** Comparison of this word with similar words and when to use each */
+  whenToUse: WordUsageComparison[];
+}
+
+export interface ErrorResponse {
+  error: string;
+}

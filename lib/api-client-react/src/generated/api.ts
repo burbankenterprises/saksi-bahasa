@@ -5,18 +5,28 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  ErrorResponse,
+  HealthStatus,
+  TranslateRequest,
+  TranslateResponse,
+  WordFamilyRequest,
+  WordFamilyResponse,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -99,3 +109,175 @@ export function useHealthCheck<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Translate English text to Indonesian in 3 styles
+ */
+export const getTranslateUrl = () => {
+  return `/api/translate`;
+};
+
+export const translate = async (
+  translateRequest: TranslateRequest,
+  options?: RequestInit,
+): Promise<TranslateResponse> => {
+  return customFetch<TranslateResponse>(getTranslateUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(translateRequest),
+  });
+};
+
+export const getTranslateMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof translate>>,
+    TError,
+    { data: BodyType<TranslateRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof translate>>,
+  TError,
+  { data: BodyType<TranslateRequest> },
+  TContext
+> => {
+  const mutationKey = ["translate"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof translate>>,
+    { data: BodyType<TranslateRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return translate(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type TranslateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof translate>>
+>;
+export type TranslateMutationBody = BodyType<TranslateRequest>;
+export type TranslateMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Translate English text to Indonesian in 3 styles
+ */
+export const useTranslate = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof translate>>,
+    TError,
+    { data: BodyType<TranslateRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof translate>>,
+  TError,
+  { data: BodyType<TranslateRequest> },
+  TContext
+> => {
+  return useMutation(getTranslateMutationOptions(options));
+};
+
+/**
+ * @summary Get word family and usage explanation for an Indonesian word
+ */
+export const getGetWordFamilyUrl = () => {
+  return `/api/word-family`;
+};
+
+export const getWordFamily = async (
+  wordFamilyRequest: WordFamilyRequest,
+  options?: RequestInit,
+): Promise<WordFamilyResponse> => {
+  return customFetch<WordFamilyResponse>(getGetWordFamilyUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(wordFamilyRequest),
+  });
+};
+
+export const getGetWordFamilyMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof getWordFamily>>,
+    TError,
+    { data: BodyType<WordFamilyRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof getWordFamily>>,
+  TError,
+  { data: BodyType<WordFamilyRequest> },
+  TContext
+> => {
+  const mutationKey = ["getWordFamily"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof getWordFamily>>,
+    { data: BodyType<WordFamilyRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return getWordFamily(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GetWordFamilyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof getWordFamily>>
+>;
+export type GetWordFamilyMutationBody = BodyType<WordFamilyRequest>;
+export type GetWordFamilyMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Get word family and usage explanation for an Indonesian word
+ */
+export const useGetWordFamily = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof getWordFamily>>,
+    TError,
+    { data: BodyType<WordFamilyRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof getWordFamily>>,
+  TError,
+  { data: BodyType<WordFamilyRequest> },
+  TContext
+> => {
+  return useMutation(getGetWordFamilyMutationOptions(options));
+};

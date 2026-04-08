@@ -14,3 +14,106 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * @summary Translate English text to Indonesian in 3 styles
+ */
+export const TranslateBody = zod.object({
+  text: zod.string().describe("English text to translate"),
+});
+
+export const TranslateResponse = zod.object({
+  casual: zod
+    .object({
+      indonesian: zod.string().describe("The Indonesian translation"),
+      literal: zod
+        .string()
+        .describe(
+          "Literal word-for-word translation back to English for grammar study",
+        ),
+    })
+    .describe("Casual\/slang style — like talking with close friends"),
+  polite: zod
+    .object({
+      indonesian: zod.string().describe("The Indonesian translation"),
+      literal: zod
+        .string()
+        .describe(
+          "Literal word-for-word translation back to English for grammar study",
+        ),
+    })
+    .describe("Polite public style — talking to a stranger in public"),
+  formal: zod
+    .object({
+      indonesian: zod.string().describe("The Indonesian translation"),
+      literal: zod
+        .string()
+        .describe(
+          "Literal word-for-word translation back to English for grammar study",
+        ),
+    })
+    .describe(
+      "Formal JW discourse style — suitable for Jehovah's Witnesses meetings\/talks",
+    ),
+});
+
+/**
+ * @summary Get word family and usage explanation for an Indonesian word
+ */
+export const GetWordFamilyBody = zod.object({
+  word: zod.string().describe("The Indonesian word to explain"),
+  context: zod
+    .string()
+    .optional()
+    .describe("Optional surrounding sentence for context"),
+});
+
+export const GetWordFamilyResponse = zod.object({
+  word: zod.string(),
+  briefMeaning: zod
+    .string()
+    .describe('Short English meaning (e.g. \"room; space\")'),
+  inAction: zod
+    .array(
+      zod.object({
+        indonesian: zod.string(),
+        english: zod.string(),
+      }),
+    )
+    .describe("3 example sentences showing the word in action"),
+  wordFamily: zod
+    .array(
+      zod.object({
+        word: zod.string(),
+        meaning: zod.string(),
+        exampleIndonesian: zod
+          .string()
+          .describe("Example sentence in Indonesian"),
+        exampleEnglish: zod
+          .string()
+          .describe("English translation of the example"),
+      }),
+    )
+    .describe("Related word forms (root, derivatives)"),
+  whenToUse: zod
+    .array(
+      zod.object({
+        word: zod.string(),
+        label: zod
+          .string()
+          .describe('e.g. \"THIS WORD\" or \"KEY DIFFERENCE\"'),
+        whatItMeans: zod.string().optional(),
+        whenToUse: zod.string(),
+        exampleIndonesian: zod.string(),
+        exampleEnglish: zod.string(),
+        isThisWord: zod
+          .boolean()
+          .describe(
+            "True if this is the word the user clicked (not a comparison word)",
+          ),
+      }),
+    )
+    .describe(
+      "Comparison of this word with similar words and when to use each",
+    ),
+});

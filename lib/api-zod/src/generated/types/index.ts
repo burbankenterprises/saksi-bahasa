@@ -6,4 +6,13 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./errorResponse";
 export * from "./healthStatus";
+export * from "./translateRequest";
+export * from "./translateResponse";
+export * from "./translationStyle";
+export * from "./wordFamilyRequest";
+export * from "./wordFamilyResponse";
+export * from "./wordFamilyResponseInActionItem";
+export * from "./wordRelated";
+export * from "./wordUsageComparison";

@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: translation
+    description: Indonesian translation operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,69 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /translate:
+    post:
+      operationId: translate
+      tags: [translation]
+      summary: Translate English text to Indonesian in 3 styles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TranslateRequest"
+      responses:
+        "200":
+          description: Translation result with 3 styles
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TranslateResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /word-family:
+    post:
+      operationId: getWordFamily
+      tags: [translation]
+      summary: Get word family and usage explanation for an Indonesian word
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WordFamilyRequest"
+      responses:
+        "200":
+          description: Word family explanation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WordFamilyResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +99,145 @@ components:
       required:
         - status
 
+    TranslateRequest:
+      type: object
+      properties:
+        text:
+          type: string
+          description: English text to translate
+      required:
+        - text
+
+    TranslationStyle:
+      type: object
+      properties:
+        indonesian:
+          type: string
+          description: The Indonesian translation
+        literal:
+          type: string
+          description: Literal word-for-word translation back to English for grammar study
+      required:
+        - indonesian
+        - literal
+
+    TranslateResponse:
+      type: object
+      properties:
+        casual:
+          $ref: "#/components/schemas/TranslationStyle"
+          description: Casual/slang style — like talking with close friends
+        polite:
+          $ref: "#/components/schemas/TranslationStyle"
+          description: Polite public style — talking to a stranger in public
+        formal:
+          $ref: "#/components/schemas/TranslationStyle"
+          description: Formal JW discourse style — suitable for Jehovah's Witnesses meetings/talks
+      required:
+        - casual
+        - polite
+        - formal
+
+    WordFamilyRequest:
+      type: object
+      properties:
+        word:
+          type: string
+          description: The Indonesian word to explain
+        context:
+          type: string
+          description: Optional surrounding sentence for context
+      required:
+        - word
+
+    WordRelated:
+      type: object
+      properties:
+        word:
+          type: string
+        meaning:
+          type: string
+        exampleIndonesian:
+          type: string
+          description: Example sentence in Indonesian
+        exampleEnglish:
+          type: string
+          description: English translation of the example
+      required:
+        - word
+        - meaning
+        - exampleIndonesian
+        - exampleEnglish
+
+    WordUsageComparison:
+      type: object
+      properties:
+        word:
+          type: string
+        label:
+          type: string
+          description: e.g. "THIS WORD" or "KEY DIFFERENCE"
+        whatItMeans:
+          type: string
+        whenToUse:
+          type: string
+        exampleIndonesian:
+          type: string
+        exampleEnglish:
+          type: string
+        isThisWord:
+          type: boolean
+          description: True if this is the word the user clicked (not a comparison word)
+      required:
+        - word
+        - label
+        - whenToUse
+        - exampleIndonesian
+        - exampleEnglish
+        - isThisWord
+
+    WordFamilyResponse:
+      type: object
+      properties:
+        word:
+          type: string
+        briefMeaning:
+          type: string
+          description: Short English meaning (e.g. "room; space")
+        inAction:
+          type: array
+          items:
+            type: object
+            properties:
+              indonesian:
+                type: string
+              english:
+                type: string
+            required:
+              - indonesian
+              - english
+          description: 3 example sentences showing the word in action
+        wordFamily:
+          type: array
+          items:
+            $ref: "#/components/schemas/WordRelated"
+          description: Related word forms (root, derivatives)
+        whenToUse:
+          type: array
+          items:
+            $ref: "#/components/schemas/WordUsageComparison"
+          description: Comparison of this word with similar words and when to use each
+      required:
+        - word
+        - briefMeaning
+        - inAction
+        - wordFamily
+        - whenToUse
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error

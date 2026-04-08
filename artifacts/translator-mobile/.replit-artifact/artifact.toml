@@ -1,0 +1,27 @@
+kind = "mobile"
+previewPath = "/translator-mobile/"
+title = "Indonesian Translator Mobile"
+version = "1.0.0"
+id = "artifacts/translator-mobile"
+router = "expo-domain"
+
+[[integratedSkills]]
+name = "expo"
+version = "1.0.0"
+
+[[services]]
+ensurePreviewReachable = "/status"
+name = "expo"
+paths = [ "/translator-mobile/" ]
+localPort = 22578
+
+[services.development]
+run = "pnpm --filter @workspace/translator-mobile run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/translator-mobile", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/translator-mobile", "run", "serve" ]
+
+[services.env]
+PORT = "22578"
+BASE_PATH = "/translator-mobile/"
