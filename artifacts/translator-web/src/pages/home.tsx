@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslate } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,11 +18,14 @@ import {
   Copy,
   Check,
   Settings,
+  Clock,
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { WordFamilySheet } from "@/components/word-family-sheet";
 import { SettingsSheet } from "@/components/settings-sheet";
+import { HistorySheet } from "@/components/history-sheet";
 import { useSettings } from "@/hooks/useSettings";
+import { useHistory } from "@/hooks/useHistory";
 import type { TranslationStyle, IndonesianRegion } from "@workspace/api-client-react/src/generated/api.schemas";
 
 const REGIONS: { value: IndonesianRegion; label: string; flag: string }[] = [
@@ -43,7 +46,9 @@ export default function Home() {
   const { theme, setTheme } = useTheme();
   const [selectedWord, setSelectedWord] = useState<{ word: string; context: string } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [lastInput, setLastInput] = useState("");
 
   const { data: translations, isPending, mutate: translateText } = useTranslate();
 
@@ -56,8 +61,11 @@ export default function Home() {
     deleteExcludedWord,
   } = useSettings();
 
+  const { entries: historyEntries, addEntry, toggleSaved, deleteEntry, clearAll } = useHistory();
+
   const handleTranslate = () => {
     if (!text.trim()) return;
+    setLastInput(text.trim());
     translateText({
       data: {
         text,
@@ -70,6 +78,21 @@ export default function Home() {
   };
 
   const activeRegion = REGIONS.find((r) => r.value === region)!;
+
+  useEffect(() => {
+    if (translations && lastInput) {
+      addEntry({
+        inputText: lastInput,
+        region,
+        localSlang,
+        translations: {
+          casual: translations.casual,
+          polite: translations.polite,
+          formal: translations.formal,
+        },
+      });
+    }
+  }, [translations]);
 
   const handleCopy = (key: string, value: string) => {
     navigator.clipboard.writeText(value);
@@ -138,6 +161,18 @@ export default function Home() {
             <h1 className="text-xl font-serif font-bold text-foreground tracking-tight">Saksi Bahasa</h1>
           </div>
           <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setHistoryOpen(true)}
+              className="rounded-full w-9 h-9 hover:bg-muted relative"
+              title="History"
+            >
+              <Clock className="h-4 w-4" />
+              {historyEntries.length > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-muted-foreground/60" />
+              )}
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -308,6 +343,16 @@ export default function Home() {
         onDeleteJWTerm={deleteJWTerm}
         onAddExcludedWord={addExcludedWord}
         onDeleteExcludedWord={deleteExcludedWord}
+      />
+
+      <HistorySheet
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        entries={historyEntries}
+        onToggleSaved={toggleSaved}
+        onDelete={deleteEntry}
+        onClearAll={clearAll}
+        onRestore={(restoredText) => setText(restoredText)}
       />
     </div>
   );

@@ -20,6 +20,7 @@ import { useColors } from "@/hooks/useColors";
 import { WordFamilySheet } from "@/components/WordFamilySheet";
 import { SettingsModal } from "@/components/SettingsModal";
 import { useSettings } from "@/hooks/useSettings";
+import { useHistory } from "@/hooks/useHistory";
 import { useTranslate, useGetWordFamily } from "@workspace/api-client-react";
 import type { IndonesianRegion } from "@workspace/api-client-react/src/generated/api.schemas";
 
@@ -215,6 +216,8 @@ export default function TranslateScreen() {
     deleteExcludedWord,
   } = useSettings();
 
+  const { addEntry } = useHistory();
+
   const handleTranslate = useCallback(async () => {
     if (!inputText.trim()) return;
     Keyboard.dismiss();
@@ -229,9 +232,20 @@ export default function TranslateScreen() {
           excludedWords: settings.excludedWords.map((w) => w.word),
         },
       });
-      setResult(data as unknown as TranslationResult);
+      const result = data as unknown as TranslationResult;
+      setResult(result);
+      await addEntry({
+        inputText: inputText.trim(),
+        region,
+        localSlang,
+        translations: {
+          casual: result.casual,
+          polite: result.polite,
+          formal: result.formal,
+        },
+      });
     } catch {}
-  }, [inputText, region, localSlang, translateMutation, settings]);
+  }, [inputText, region, localSlang, translateMutation, settings, addEntry]);
 
   const handleCopy = useCallback(async (key: string, text: string) => {
     Haptics.selectionAsync();
