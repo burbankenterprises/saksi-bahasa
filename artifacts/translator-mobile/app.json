@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Saksi Bahasa",
-    "slug": "translator-mobile",
+    "name": "English Indo Helper",
+    "slug": "englishindohelper",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "translator-mobile",
+    "scheme": "englishindohelper",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -14,9 +14,12 @@
       "backgroundColor": "#111827"
     },
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.englishindohelper.app"
     },
-    "android": {},
+    "android": {
+      "package": "com.englishindohelper.app"
+    },
     "web": {
       "favicon": "./assets/images/icon.png"
     },
