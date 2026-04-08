@@ -1,6 +1,11 @@
 import { Router } from "express";
-import { openai } from "@workspace/integrations-openai-ai-server";
+import OpenAI from "openai";
 import { TranslateBody, GetWordFamilyBody } from "@workspace/api-zod";
+
+const xai = new OpenAI({
+  apiKey: process.env.XAI_API_KEY,
+  baseURL: "https://api.x.ai/v1",
+});
 
 const router = Router();
 
@@ -155,8 +160,8 @@ router.post("/translate", async (req, res) => {
     : SYSTEM_PROMPT;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
+    const completion = await xai.chat.completions.create({
+      model: "grok-3",
       max_tokens: 4096,
       messages: [
         { role: "system", content: systemContent },
@@ -201,8 +206,8 @@ router.post("/word-family", async (req, res) => {
     : `Explain the Indonesian word "${word}"`;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
+    const completion = await xai.chat.completions.create({
+      model: "grok-3",
       max_tokens: 4096,
       messages: [
         { role: "system", content: WORD_FAMILY_SYSTEM_PROMPT },
