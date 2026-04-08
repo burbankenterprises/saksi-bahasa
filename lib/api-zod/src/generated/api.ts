@@ -20,6 +20,14 @@ export const HealthCheckResponse = zod.object({
  */
 export const TranslateBody = zod.object({
   text: zod.string().describe("English text to translate"),
+  jwTerms: zod
+    .array(zod.object({ english: zod.string(), indonesian: zod.string() }))
+    .optional()
+    .describe("Custom JW terminology overrides"),
+  excludedWords: zod
+    .array(zod.string())
+    .optional()
+    .describe("Words to exclude from all outputs"),
 });
 
 export const TranslateResponse = zod.object({

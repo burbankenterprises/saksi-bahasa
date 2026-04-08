@@ -9,9 +9,18 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface JWTermOverride {
+  english: string;
+  indonesian: string;
+}
+
 export interface TranslateRequest {
   /** English text to translate */
   text: string;
+  /** Custom JW terminology overrides */
+  jwTerms?: JWTermOverride[];
+  /** Words to exclude from all outputs */
+  excludedWords?: string[];
 }
 
 export interface TranslationStyle {

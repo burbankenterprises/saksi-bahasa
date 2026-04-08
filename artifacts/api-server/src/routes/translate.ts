@@ -96,19 +96,35 @@ router.post("/translate", async (req, res) => {
     return;
   }
 
-  const { text } = parseResult.data;
+  const { text, jwTerms, excludedWords } = parseResult.data;
 
   if (!text || text.trim().length === 0) {
     res.status(400).json({ error: "Text is required" });
     return;
   }
 
+  let customRules = "";
+  if (jwTerms && jwTerms.length > 0) {
+    const termLines = jwTerms
+      .map((t) => `- "${t.english}" → "${t.indonesian}" (NEVER use any other Indonesian word for this English term)`)
+      .join("\n");
+    customRules += `\n\nSTRICT USER-DEFINED TERMINOLOGY OVERRIDES — follow exactly, no exceptions:\n${termLines}`;
+  }
+  if (excludedWords && excludedWords.length > 0) {
+    const excludeLines = excludedWords.map((w) => `- "${w}"`).join("\n");
+    customRules += `\n\nPROHIBITED WORDS — NEVER use these words in any output under any circumstances:\n${excludeLines}`;
+  }
+
+  const systemContent = customRules
+    ? `${SYSTEM_PROMPT}\n\n---\nSESSION-SPECIFIC OVERRIDES (take highest priority over all other rules):${customRules}`
+    : SYSTEM_PROMPT;
+
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       max_tokens: 4096,
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: systemContent },
         { role: "user", content: `Translate this English text to Indonesian in three styles:\n\n${text}` },
       ],
       response_format: { type: "json_object" },

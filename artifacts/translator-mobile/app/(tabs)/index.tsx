@@ -15,8 +15,11 @@ import { useState, useCallback } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import * as Clipboard from "expo-clipboard";
 import { useColors } from "@/hooks/useColors";
 import { WordFamilySheet } from "@/components/WordFamilySheet";
+import { SettingsModal } from "@/components/SettingsModal";
+import { useSettings } from "@/hooks/useSettings";
 import { useTranslate, useGetWordFamily } from "@workspace/api-client-react";
 
 interface TranslationStyle {
@@ -76,22 +79,18 @@ function ClickableText({
   text,
   onWordPress,
   style,
-  testID,
 }: {
   text: string;
   onWordPress: (word: string, context: string) => void;
   style?: object;
-  testID?: string;
 }) {
   const colors = useColors();
   const words = text.split(/(\s+)/);
 
   return (
-    <Text style={style} testID={testID}>
+    <Text style={style}>
       {words.map((part, i) => {
-        if (/^\s+$/.test(part)) {
-          return <Text key={i}>{part}</Text>;
-        }
+        if (/^\s+$/.test(part)) return <Text key={i}>{part}</Text>;
         const cleanWord = part.replace(/[.,!?;:'"()]/g, "");
         if (!cleanWord) return <Text key={i}>{part}</Text>;
         return (
@@ -99,7 +98,6 @@ function ClickableText({
             key={i}
             onPress={() => onWordPress(cleanWord, text)}
             style={[styles.clickableWord, { color: colors.foreground }]}
-            testID={`word-${cleanWord}-${i}`}
           >
             {part}
           </Text>
@@ -116,6 +114,8 @@ function TranslationCard({
   description,
   translation,
   onWordPress,
+  copied,
+  onCopy,
 }: {
   styleKey: string;
   label: string;
@@ -123,40 +123,32 @@ function TranslationCard({
   description: string;
   translation: TranslationStyle;
   onWordPress: (word: string, context: string) => void;
+  copied: boolean;
+  onCopy: () => void;
 }) {
   const colors = useColors();
 
   return (
-    <View
-      style={[
-        styles.card,
-        {
-          backgroundColor: colors.card,
-          borderColor: colors.border,
-        },
-      ]}
-      testID={`card-${styleKey}`}
-    >
+    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <View style={styles.cardHeader}>
-        <View
-          style={[
-            styles.cardIconBadge,
-            { backgroundColor: colors.primary + "22" },
-          ]}
-        >
+        <View style={[styles.cardIconBadge, { backgroundColor: colors.primary + "22" }]}>
           <Feather name={icon} size={14} color={colors.primary} />
         </View>
         <View style={styles.cardTitleGroup}>
-          <Text
-            style={[styles.cardTitle, { color: colors.foreground }]}
-            testID={`label-${styleKey}`}
-          >
-            {label}
-          </Text>
-          <Text style={[styles.cardSubtitle, { color: colors.mutedForeground }]}>
-            {description}
-          </Text>
+          <Text style={[styles.cardTitle, { color: colors.foreground }]}>{label}</Text>
+          <Text style={[styles.cardSubtitle, { color: colors.mutedForeground }]}>{description}</Text>
         </View>
+        <TouchableOpacity
+          onPress={onCopy}
+          style={[styles.copyBtn, { backgroundColor: copied ? "#22c55e18" : colors.secondary }]}
+          activeOpacity={0.7}
+        >
+          <Feather
+            name={copied ? "check" : "copy"}
+            size={14}
+            color={copied ? "#22c55e" : colors.mutedForeground}
+          />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.cardBody}>
@@ -164,24 +156,10 @@ function TranslationCard({
           text={translation.indonesian}
           onWordPress={onWordPress}
           style={[styles.indonesianText, { color: colors.foreground }]}
-          testID={`indonesian-${styleKey}`}
         />
-
-        <View
-          style={[
-            styles.literalContainer,
-            { borderTopColor: colors.border },
-          ]}
-        >
-          <Text
-            style={[styles.literalLabel, { color: colors.primary }]}
-          >
-            Literal Translation
-          </Text>
-          <Text
-            style={[styles.literalText, { color: colors.mutedForeground }]}
-            testID={`literal-${styleKey}`}
-          >
+        <View style={[styles.literalContainer, { borderTopColor: colors.border }]}>
+          <Text style={[styles.literalLabel, { color: colors.primary }]}>Literal Translation</Text>
+          <Text style={[styles.literalText, { color: colors.mutedForeground }]}>
             {translation.literal}
           </Text>
         </View>
@@ -193,28 +171,50 @@ function TranslationCard({
 export default function TranslateScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const colorScheme = useColorScheme();
   const [inputText, setInputText] = useState("");
   const [result, setResult] = useState<TranslationResult | null>(null);
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [selectedContext, setSelectedContext] = useState<string>("");
   const [wordFamilyData, setWordFamilyData] = useState<WordFamilyData | null>(null);
   const [sheetVisible, setSheetVisible] = useState(false);
+  const [settingsVisible, setSettingsVisible] = useState(false);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const translateMutation = useTranslate();
   const wordFamilyMutation = useGetWordFamily();
+
+  const {
+    settings,
+    loaded,
+    addJWTerm,
+    editJWTerm,
+    deleteJWTerm,
+    addExcludedWord,
+    deleteExcludedWord,
+  } = useSettings();
 
   const handleTranslate = useCallback(async () => {
     if (!inputText.trim()) return;
     Keyboard.dismiss();
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     try {
-      const data = await translateMutation.mutateAsync({ data: { text: inputText.trim() } });
+      const data = await translateMutation.mutateAsync({
+        data: {
+          text: inputText.trim(),
+          jwTerms: settings.jwTerms.map(({ english, indonesian }) => ({ english, indonesian })),
+          excludedWords: settings.excludedWords.map((w) => w.word),
+        },
+      });
       setResult(data as unknown as TranslationResult);
-    } catch {
-      // error handled by mutation
-    }
-  }, [inputText, translateMutation]);
+    } catch {}
+  }, [inputText, translateMutation, settings]);
+
+  const handleCopy = useCallback(async (key: string, text: string) => {
+    Haptics.selectionAsync();
+    await Clipboard.setStringAsync(text);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 1800);
+  }, []);
 
   const handleWordPress = useCallback(
     async (word: string, context: string) => {
@@ -224,13 +224,9 @@ export default function TranslateScreen() {
       setWordFamilyData(null);
       setSheetVisible(true);
       try {
-        const data = await wordFamilyMutation.mutateAsync({
-          data: { word, context },
-        });
+        const data = await wordFamilyMutation.mutateAsync({ data: { word, context } });
         setWordFamilyData(data as unknown as WordFamilyData);
-      } catch {
-        // error handled
-      }
+      } catch {}
     },
     [wordFamilyMutation]
   );
@@ -252,41 +248,35 @@ export default function TranslateScreen() {
         ]}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.header}>
-          <Text style={[styles.appTitle, { color: colors.foreground }]}>
-            Saksi Bahasa
-          </Text>
-          <Text style={[styles.appSubtitle, { color: colors.mutedForeground }]}>
-            Indonesian Translator
-          </Text>
+        <View style={styles.headerRow}>
+          <View>
+            <Text style={[styles.appTitle, { color: colors.foreground }]}>Saksi Bahasa</Text>
+            <Text style={[styles.appSubtitle, { color: colors.mutedForeground }]}>
+              Indonesian Translator
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => setSettingsVisible(true)}
+            style={[styles.settingsBtn, { backgroundColor: colors.secondary }]}
+            activeOpacity={0.7}
+          >
+            <Feather name="settings" size={16} color={colors.foreground} />
+            {(settings.jwTerms.length > 0 || settings.excludedWords.length > 0) && (
+              <View style={[styles.settingsBadge, { backgroundColor: colors.primary }]} />
+            )}
+          </TouchableOpacity>
         </View>
 
-        <View
-          style={[
-            styles.inputCard,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-            },
-          ]}
-        >
+        <View style={[styles.inputCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <TextInput
-            style={[
-              styles.textInput,
-              {
-                color: colors.foreground,
-                fontFamily: "Inter_400Regular",
-              },
-            ]}
+            style={[styles.textInput, { color: colors.foreground, fontFamily: "Inter_400Regular" }]}
             placeholder="Type English text to translate..."
             placeholderTextColor={colors.mutedForeground}
             value={inputText}
             onChangeText={setInputText}
             multiline
             textAlignVertical="top"
-            testID="input-text"
           />
-
           <TouchableOpacity
             style={[
               styles.translateButton,
@@ -299,33 +289,21 @@ export default function TranslateScreen() {
             ]}
             onPress={handleTranslate}
             disabled={!inputText.trim() || translateMutation.isPending}
-            testID="button-translate"
             activeOpacity={0.8}
           >
             {translateMutation.isPending ? (
-              <ActivityIndicator
-                size="small"
-                color={colors.primaryForeground}
-              />
+              <ActivityIndicator size="small" color={colors.primaryForeground} />
             ) : (
               <>
                 <Feather
                   name="globe"
                   size={16}
-                  color={
-                    !inputText.trim()
-                      ? colors.mutedForeground
-                      : colors.primaryForeground
-                  }
+                  color={!inputText.trim() ? colors.mutedForeground : colors.primaryForeground}
                 />
                 <Text
                   style={[
                     styles.translateButtonText,
-                    {
-                      color: !inputText.trim()
-                        ? colors.mutedForeground
-                        : colors.primaryForeground,
-                    },
+                    { color: !inputText.trim() ? colors.mutedForeground : colors.primaryForeground },
                   ]}
                 >
                   Translate
@@ -336,51 +314,39 @@ export default function TranslateScreen() {
         </View>
 
         {!result && !translateMutation.isPending && (
-          <View style={styles.emptyState} testID="empty-state">
+          <View style={styles.emptyState}>
             <Feather name="globe" size={40} color={colors.border} />
-            <Text style={[styles.emptyTitle, { color: colors.mutedForeground }]}>
-              Ready to translate
-            </Text>
-            <Text
-              style={[styles.emptySubtitle, { color: colors.mutedForeground }]}
-            >
+            <Text style={[styles.emptyTitle, { color: colors.mutedForeground }]}>Ready to translate</Text>
+            <Text style={[styles.emptySubtitle, { color: colors.mutedForeground }]}>
               Tap any Indonesian word in the output{"\n"}to see its word family
             </Text>
           </View>
         )}
 
         {translateMutation.isPending && (
-          <View style={styles.loadingState} testID="loading-state">
+          <View style={styles.loadingState}>
             <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={[styles.loadingText, { color: colors.mutedForeground }]}>
-              Translating...
-            </Text>
+            <Text style={[styles.loadingText, { color: colors.mutedForeground }]}>Translating...</Text>
           </View>
         )}
 
         {translateMutation.isError && (
-          <View style={styles.errorState} testID="error-state">
+          <View style={styles.errorState}>
             <Feather name="alert-circle" size={32} color={colors.destructive} />
             <Text style={[styles.errorText, { color: colors.destructive }]}>
               Translation failed. Please try again.
             </Text>
             <TouchableOpacity
               onPress={handleTranslate}
-              style={[
-                styles.retryButton,
-                { borderColor: colors.destructive },
-              ]}
-              testID="button-retry"
+              style={[styles.retryButton, { borderColor: colors.destructive }]}
             >
-              <Text style={{ color: colors.destructive, fontFamily: "Inter_500Medium" }}>
-                Retry
-              </Text>
+              <Text style={{ color: colors.destructive, fontFamily: "Inter_500Medium" }}>Retry</Text>
             </TouchableOpacity>
           </View>
         )}
 
         {result && !translateMutation.isPending && (
-          <View style={styles.results} testID="results-container">
+          <View style={styles.results}>
             <Text style={[styles.tapHint, { color: colors.mutedForeground }]}>
               Tap any word for details
             </Text>
@@ -393,6 +359,8 @@ export default function TranslateScreen() {
                 description={cfg.description}
                 translation={result[cfg.key]}
                 onWordPress={handleWordPress}
+                copied={copiedKey === cfg.key}
+                onCopy={() => handleCopy(cfg.key, result[cfg.key].indonesian)}
               />
             ))}
           </View>
@@ -407,45 +375,51 @@ export default function TranslateScreen() {
         isLoading={wordFamilyMutation.isPending}
         isError={wordFamilyMutation.isError}
       />
+
+      <SettingsModal
+        visible={settingsVisible}
+        onClose={() => setSettingsVisible(false)}
+        jwTerms={settings.jwTerms}
+        excludedWords={settings.excludedWords}
+        onAddJWTerm={addJWTerm}
+        onEditJWTerm={editJWTerm}
+        onDeleteJWTerm={deleteJWTerm}
+        onAddExcludedWord={addExcludedWord}
+        onDeleteExcludedWord={deleteExcludedWord}
+      />
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    gap: 16,
-  },
-  header: {
+  container: { flex: 1 },
+  scroll: { flex: 1 },
+  scrollContent: { paddingHorizontal: 20, gap: 16 },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 4,
   },
-  appTitle: {
-    fontSize: 28,
-    fontFamily: "Inter_700Bold",
-    letterSpacing: -0.5,
+  appTitle: { fontSize: 28, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
+  appSubtitle: { fontSize: 14, fontFamily: "Inter_400Regular", marginTop: 2 },
+  settingsBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  appSubtitle: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    marginTop: 2,
+  settingsBadge: {
+    position: "absolute",
+    top: 6,
+    right: 6,
+    width: 7,
+    height: 7,
+    borderRadius: 4,
   },
-  inputCard: {
-    borderRadius: 16,
-    borderWidth: 1,
-    overflow: "hidden",
-  },
-  textInput: {
-    padding: 16,
-    fontSize: 16,
-    minHeight: 110,
-    lineHeight: 24,
-  },
+  inputCard: { borderRadius: 16, borderWidth: 1, overflow: "hidden" },
+  textInput: { padding: 16, fontSize: 16, minHeight: 110, lineHeight: 24 },
   translateButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -456,63 +430,28 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderRadius: 12,
   },
-  translateButtonText: {
-    fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
-  },
-  emptyState: {
-    alignItems: "center",
-    paddingVertical: 48,
-    gap: 12,
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontFamily: "Inter_500Medium",
-  },
+  translateButtonText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  emptyState: { alignItems: "center", paddingVertical: 48, gap: 12 },
+  emptyTitle: { fontSize: 16, fontFamily: "Inter_500Medium" },
   emptySubtitle: {
     fontSize: 13,
     fontFamily: "Inter_400Regular",
     textAlign: "center",
     lineHeight: 20,
   },
-  loadingState: {
-    alignItems: "center",
-    paddingVertical: 48,
-    gap: 16,
-  },
-  loadingText: {
-    fontSize: 15,
-    fontFamily: "Inter_400Regular",
-  },
-  errorState: {
-    alignItems: "center",
-    gap: 12,
-    paddingVertical: 32,
-  },
-  errorText: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    textAlign: "center",
-  },
+  loadingState: { alignItems: "center", paddingVertical: 48, gap: 16 },
+  loadingText: { fontSize: 15, fontFamily: "Inter_400Regular" },
+  errorState: { alignItems: "center", gap: 12, paddingVertical: 32 },
+  errorText: { fontSize: 14, fontFamily: "Inter_400Regular", textAlign: "center" },
   retryButton: {
     paddingHorizontal: 20,
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
   },
-  results: {
-    gap: 14,
-  },
-  tapHint: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
-    textAlign: "center",
-  },
-  card: {
-    borderRadius: 16,
-    borderWidth: 1,
-    overflow: "hidden",
-  },
+  results: { gap: 14 },
+  tapHint: { fontSize: 12, fontFamily: "Inter_400Regular", textAlign: "center" },
+  card: { borderRadius: 16, borderWidth: 1, overflow: "hidden" },
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -527,37 +466,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  cardTitleGroup: {
-    flex: 1,
+  cardTitleGroup: { flex: 1 },
+  cardTitle: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  cardSubtitle: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 1 },
+  copyBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  cardTitle: {
-    fontSize: 14,
-    fontFamily: "Inter_600SemiBold",
-  },
-  cardSubtitle: {
-    fontSize: 11,
-    fontFamily: "Inter_400Regular",
-    marginTop: 1,
-  },
-  cardBody: {
-    paddingHorizontal: 14,
-    paddingBottom: 14,
-    gap: 10,
-  },
-  indonesianText: {
-    fontSize: 16,
-    fontFamily: "Inter_400Regular",
-    lineHeight: 26,
-  },
-  clickableWord: {
-    textDecorationLine: "underline",
-    textDecorationStyle: "dotted",
-  },
-  literalContainer: {
-    borderTopWidth: 1,
-    paddingTop: 10,
-    gap: 4,
-  },
+  cardBody: { paddingHorizontal: 14, paddingBottom: 14, gap: 10 },
+  indonesianText: { fontSize: 16, fontFamily: "Inter_400Regular", lineHeight: 26 },
+  clickableWord: { textDecorationLine: "underline", textDecorationStyle: "dotted" },
+  literalContainer: { borderTopWidth: 1, paddingTop: 10, gap: 4 },
   literalLabel: {
     fontSize: 10,
     fontFamily: "Inter_600SemiBold",
