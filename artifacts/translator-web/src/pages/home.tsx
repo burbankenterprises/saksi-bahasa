@@ -158,7 +158,7 @@ export default function Home() {
             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center border border-primary/30">
               <BookOpen className="w-4 h-4 text-primary" />
             </div>
-            <h1 className="text-xl font-serif font-bold text-foreground tracking-tight">Saksi Bahasa</h1>
+            <h1 className="text-xl font-serif font-bold text-foreground tracking-tight">English Indonesian Helper App</h1>
           </div>
           <div className="flex items-center gap-1">
             <Button

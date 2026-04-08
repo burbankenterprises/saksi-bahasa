@@ -288,7 +288,7 @@ export default function TranslateScreen() {
       >
         <View style={styles.headerRow}>
           <View>
-            <Text style={[styles.appTitle, { color: colors.foreground }]}>Saksi Bahasa</Text>
+            <Text style={[styles.appTitle, { color: colors.foreground }]}>English Indonesian Helper App</Text>
             <Text style={[styles.appSubtitle, { color: colors.mutedForeground }]}>
               Indonesian Translator
             </Text>
