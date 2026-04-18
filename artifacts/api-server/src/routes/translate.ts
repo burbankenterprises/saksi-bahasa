@@ -1,6 +1,10 @@
 import { Router } from "express";
-import { anthropic } from "@workspace/integrations-anthropic-ai";
+import Anthropic from "@anthropic-ai/sdk";
 import { TranslateBody, GetWordFamilyBody } from "@workspace/api-zod";
+
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
 
 const router = Router();
 
