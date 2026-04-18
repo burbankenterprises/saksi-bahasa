@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { openai } from "@workspace/integrations-openai-ai-server";
+import { anthropic } from "@workspace/integrations-anthropic-ai";
 import { TranslateBody, GetWordFamilyBody } from "@workspace/api-zod";
 
 const router = Router();
@@ -169,26 +169,27 @@ router.post("/translate", async (req, res) => {
     : SYSTEM_PROMPT;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
-      max_tokens: 4096,
+    const message = await anthropic.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 8192,
+      system: systemContent,
       messages: [
-        { role: "system", content: systemContent },
         {
           role: "user",
           content: `Translate this English text to Indonesian in three styles.\n\nFor the CASUAL style specifically, use the following regional dialect: ${regionDesc}.\n\nEnglish text:\n${text}`,
         },
       ],
-      response_format: { type: "json_object" },
     });
 
-    const content = completion.choices[0]?.message?.content;
+    const block = message.content[0];
+    const content = block.type === "text" ? block.text : null;
     if (!content) {
       res.status(500).json({ error: "No response from translation service" });
       return;
     }
 
-    const result = JSON.parse(content);
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    const result = JSON.parse(jsonMatch ? jsonMatch[0] : content);
     res.json(result);
   } catch (error) {
     req.log.error({ error }, "Translation error");
@@ -215,23 +216,22 @@ router.post("/word-family", async (req, res) => {
     : `Explain the Indonesian word "${word}"`;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
-      max_tokens: 4096,
-      messages: [
-        { role: "system", content: WORD_FAMILY_SYSTEM_PROMPT },
-        { role: "user", content: userMessage },
-      ],
-      response_format: { type: "json_object" },
+    const message = await anthropic.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 8192,
+      system: WORD_FAMILY_SYSTEM_PROMPT,
+      messages: [{ role: "user", content: userMessage }],
     });
 
-    const content = completion.choices[0]?.message?.content;
+    const block = message.content[0];
+    const content = block.type === "text" ? block.text : null;
     if (!content) {
       res.status(500).json({ error: "No response from word family service" });
       return;
     }
 
-    const result = JSON.parse(content);
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    const result = JSON.parse(jsonMatch ? jsonMatch[0] : content);
     res.json(result);
   } catch (error) {
     req.log.error({ error }, "Word family error");
