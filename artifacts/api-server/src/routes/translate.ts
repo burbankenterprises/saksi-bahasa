@@ -175,7 +175,7 @@ router.post("/translate", async (req, res) => {
 
   try {
     const response = await openai.chat.completions.create({
-      model: "grok-3",
+      model: "grok-4.20-0309-non-reasoning",
       max_completion_tokens: 8192,
       messages: [
         { role: "system", content: systemContent },
@@ -221,7 +221,7 @@ router.post("/word-family", async (req, res) => {
 
   try {
     const response = await openai.chat.completions.create({
-      model: "grok-3",
+      model: "grok-4.20-0309-non-reasoning",
       max_completion_tokens: 8192,
       messages: [
         { role: "system", content: WORD_FAMILY_SYSTEM_PROMPT },
