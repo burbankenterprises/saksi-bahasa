@@ -1,6 +1,11 @@
 import { Router } from "express";
-import { openai } from "@workspace/integrations-openai-ai-server";
+import OpenAI from "openai";
 import { TranslateBody, GetWordFamilyBody } from "@workspace/api-zod";
+
+const openai = new OpenAI({
+  apiKey: process.env.XAI_API_KEY,
+  baseURL: "https://api.x.ai/v1",
+});
 
 const router = Router();
 
@@ -170,7 +175,7 @@ router.post("/translate", async (req, res) => {
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "grok-3",
       max_completion_tokens: 8192,
       messages: [
         { role: "system", content: systemContent },
@@ -216,7 +221,7 @@ router.post("/word-family", async (req, res) => {
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "grok-3",
       max_completion_tokens: 8192,
       messages: [
         { role: "system", content: WORD_FAMILY_SYSTEM_PROMPT },
