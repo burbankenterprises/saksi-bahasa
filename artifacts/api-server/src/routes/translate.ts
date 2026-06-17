@@ -1,10 +1,6 @@
 import { Router } from "express";
-import Anthropic from "@anthropic-ai/sdk";
+import { openai } from "@workspace/integrations-openai-ai-server";
 import { TranslateBody, GetWordFamilyBody } from "@workspace/api-zod";
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
 
 const router = Router();
 
@@ -173,11 +169,11 @@ router.post("/translate", async (req, res) => {
     : SYSTEM_PROMPT;
 
   try {
-    const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 8192,
-      system: systemContent,
+    const response = await openai.chat.completions.create({
+      model: "gpt-5",
+      max_completion_tokens: 8192,
       messages: [
+        { role: "system", content: systemContent },
         {
           role: "user",
           content: `Translate this English text to Indonesian in three styles.\n\nFor the CASUAL style specifically, use the following regional dialect: ${regionDesc}.\n\nEnglish text:\n${text}`,
@@ -185,8 +181,7 @@ router.post("/translate", async (req, res) => {
       ],
     });
 
-    const block = message.content[0];
-    const content = block.type === "text" ? block.text : null;
+    const content = response.choices[0]?.message?.content ?? null;
     if (!content) {
       res.status(500).json({ error: "No response from translation service" });
       return;
@@ -220,15 +215,16 @@ router.post("/word-family", async (req, res) => {
     : `Explain the Indonesian word "${word}"`;
 
   try {
-    const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 8192,
-      system: WORD_FAMILY_SYSTEM_PROMPT,
-      messages: [{ role: "user", content: userMessage }],
+    const response = await openai.chat.completions.create({
+      model: "gpt-5",
+      max_completion_tokens: 8192,
+      messages: [
+        { role: "system", content: WORD_FAMILY_SYSTEM_PROMPT },
+        { role: "user", content: userMessage },
+      ],
     });
 
-    const block = message.content[0];
-    const content = block.type === "text" ? block.text : null;
+    const content = response.choices[0]?.message?.content ?? null;
     if (!content) {
       res.status(500).json({ error: "No response from word family service" });
       return;

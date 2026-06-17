@@ -21,7 +21,7 @@ Full-stack Indonesian language translator for Jehovah's Witnesses ministry. Tran
 - **API framework**: Express 5
 - **Validation**: Zod (`zod/v4`)
 - **API codegen**: Orval (from OpenAPI spec)
-- **AI**: OpenAI `gpt-4o` via Replit AI Integrations (no user API key required)
+- **AI**: OpenAI `gpt-5` via Replit AI Integrations (no user API key required)
 - **Mobile**: Expo (Expo Router), React Native
 - **Web**: Vite + React + Tailwind (shadcn/ui)
 
