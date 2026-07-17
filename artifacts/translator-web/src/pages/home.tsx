@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useTranslate } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +19,7 @@ import {
   Check,
   Settings,
   Clock,
+  X,
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { WordFamilySheet } from "@/components/word-family-sheet";
@@ -41,6 +42,7 @@ const REGIONS: { value: IndonesianRegion; label: string; flag: string }[] = [
 
 export default function Home() {
   const [text, setText] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [region, setRegion] = useState<IndonesianRegion>("jakarta");
   const [localSlang, setLocalSlang] = useState(false);
   const { theme, setTheme } = useTheme();
@@ -200,15 +202,34 @@ export default function Home() {
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-8 md:py-12 flex flex-col gap-8">
         <section className="flex flex-col gap-4">
           <div className="bg-card rounded-2xl border shadow-sm overflow-hidden focus-within:ring-1 focus-within:ring-primary transition-shadow">
-            <Textarea
-              placeholder="Enter English text to translate..."
-              className="min-h-[120px] resize-none border-0 focus-visible:ring-0 rounded-none bg-transparent p-5 text-lg placeholder:text-muted-foreground/60"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleTranslate();
-              }}
-            />
+            <div className="relative">
+              <Textarea
+                ref={textareaRef}
+                placeholder="Enter English text to translate..."
+                className="min-h-[120px] resize-none border-0 focus-visible:ring-0 rounded-none bg-transparent p-5 pr-14 text-lg placeholder:text-muted-foreground/60"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleTranslate();
+                }}
+              />
+              {text && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Clear input"
+                  title="Clear input"
+                  onClick={() => {
+                    setText("");
+                    textareaRef.current?.focus();
+                  }}
+                  className="absolute top-2 right-2 h-11 w-11 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              )}
+            </div>
             <div className="p-3 bg-muted/30 border-t flex items-center gap-3">
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <button
