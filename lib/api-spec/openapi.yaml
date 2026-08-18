@@ -31,7 +31,7 @@ paths:
     post:
       operationId: translate
       tags: [translation]
-      summary: Translate English text to Indonesian in 3 styles
+      summary: Translate English text to Indonesian in 4 styles
       requestBody:
         required: true
         content:
@@ -40,7 +40,7 @@ paths:
               $ref: "#/components/schemas/TranslateRequest"
       responses:
         "200":
-          description: Translation result with 3 styles
+          description: Translation result with 4 styles
           content:
             application/json:
               schema:
@@ -127,6 +127,9 @@ components:
         casual:
           $ref: "#/components/schemas/TranslationStyle"
           description: Casual/slang style — like talking with close friends
+        everyday:
+          $ref: "#/components/schemas/TranslationStyle"
+          description: Everyday style — natural, neutral bahasa Indonesia sehari-hara for ordinary daily interaction
         polite:
           $ref: "#/components/schemas/TranslationStyle"
           description: Polite public style — talking to a stranger in public
@@ -135,6 +138,7 @@ components:
           description: Formal JW discourse style — suitable for Jehovah's Witnesses meetings/talks
       required:
         - casual
+        - everyday
         - polite
         - formal
 

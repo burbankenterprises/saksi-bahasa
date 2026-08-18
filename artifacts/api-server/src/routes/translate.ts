@@ -32,10 +32,11 @@ Your translations must follow these critical rules:
    - "prayer" → "doa"
    - "worship" → "ibadah"
 
-2. Produce three distinct registers:
+2. Produce four distinct registers:
    a. "casual" — very relaxed, like texting a close friend. The specific regional slang/dialect will be specified in the user message. Use that dialect's authentic slang, pronouns, and colloquialisms naturally. If no region is specified, default to Jakarta/Betawi (lu/gue, gw).
-   b. "polite" — standard respectful Indonesian (Baku) suitable for talking to a stranger or acquaintance in public. Uses "Anda/Bapak/Ibu" where appropriate, proper grammar.
-   c. "formal" — elevated formal style suitable for giving a public discourse or comment at a Jehovah's Witnesses meeting. No contractions, complete sentences, proper honorifics.
+   b. "everyday" — natural, neutral everyday conversational Indonesian (bahasa Indonesia sehari-hara) for ordinary daily interaction: talking with neighbors, coworkers, friends-of-friends. Standard vocabulary and grammar, saya/kamu (or Anda where naturally appropriate). NO slang words or particles (no gue/lu/dong/sih/banget/deh), NO regional dialect. Common conversational contractions ARE acceptable when natural (e.g. nggak, udah, aja) because they are standard spoken Indonesian, not slang. Relaxed and natural, but not stiff — the register a polite, well-spoken person uses in daily life.
+   c. "polite" — standard respectful Indonesian (Baku) suitable for talking to a stranger or acquaintance in public. Uses "Anda/Bapak/Ibu" where appropriate, proper grammar.
+   d. "formal" — elevated formal style suitable for giving a public discourse or comment at a Jehovah's Witnesses meeting. No contractions, complete sentences, proper honorifics.
 
 3. For each translation, also provide a "literal" rendering — a word-for-word or phrase-for-phrase English gloss that shows the Indonesian grammatical structure and word order. This helps English speakers understand Indonesian grammar patterns. Keep it a bit rough/literal to be educational.
 
@@ -51,7 +52,7 @@ Your translations must follow these critical rules:
 
    CRITICAL — DO NOT FORCE SLANG: The casual register does NOT require slang in every sentence. If no slang term meets the above criteria for a given word or phrase, you MUST use clean, natural, everyday Indonesian instead. Never substitute a questionable or uncertain term just to fulfil a perceived obligation to include slang. A casual sentence written in clear, relaxed standard Indonesian is always better than a casual sentence with unverified, risky, or marginal slang. When in doubt, leave slang out entirely.
 
-6. ABSOLUTE CONTENT SAFETY — This tool is used in a Jehovah's Witnesses ministry context and may be seen by people of all ages. ALL output across ALL three styles must be completely clean, respectful, and family-appropriate at all times. The following are strictly prohibited in any part of the output, including the slangExplanation:
+6. ABSOLUTE CONTENT SAFETY — This tool is used in a Jehovah's Witnesses ministry context and may be seen by people of all ages. ALL output across ALL four styles must be completely clean, respectful, and family-appropriate at all times. The following are strictly prohibited in any part of the output, including the slangExplanation:
    - Profanity, swear words, or crude language of any kind (in Indonesian, English, or any other language)
    - Vulgar, sexually suggestive, or explicit content
    - Derogatory, insulting, or discriminatory language targeting any person, group, ethnicity, religion, or gender
@@ -69,6 +70,7 @@ Your translations must follow these critical rules:
 Always respond with valid JSON exactly in this structure:
 {
   "casual": { "indonesian": "...", "literal": "...", "slangExplanation": "..." },
+  "everyday": { "indonesian": "...", "literal": "..." },
   "polite": { "indonesian": "...", "literal": "..." },
   "formal": { "indonesian": "...", "literal": "..." }
 }`;
@@ -181,7 +183,7 @@ router.post("/translate", async (req, res) => {
         { role: "system", content: systemContent },
         {
           role: "user",
-          content: `Translate this English text to Indonesian in three styles.\n\nFor the CASUAL style specifically, use the following regional dialect: ${regionDesc}.\n\nEnglish text:\n${text}`,
+          content: `Translate this English text to Indonesian in four styles.\n\nFor the CASUAL style specifically, use the following regional dialect: ${regionDesc}.\n\nEnglish text:\n${text}`,
         },
       ],
     });

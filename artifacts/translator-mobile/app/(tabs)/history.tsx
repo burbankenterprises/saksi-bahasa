@@ -141,6 +141,7 @@ function HistoryCard({
           {(
             [
               { key: "casual" as const, label: "Casual", color: "#16a34a" },
+              { key: "everyday" as const, label: "Everyday", color: "#d97706" },
               { key: "polite" as const, label: "Polite", color: "#2563eb" },
               { key: "formal" as const, label: "Formal", color: colors.primary },
             ]

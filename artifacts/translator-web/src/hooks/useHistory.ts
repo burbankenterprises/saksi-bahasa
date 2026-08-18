@@ -3,6 +3,7 @@ import type { IndonesianRegion } from "@workspace/api-client-react/src/generated
 
 export interface HistoryTranslations {
   casual: { indonesian: string; literal: string; slangExplanation?: string };
+  everyday: { indonesian: string; literal: string };
   polite: { indonesian: string; literal: string };
   formal: { indonesian: string; literal: string };
 }

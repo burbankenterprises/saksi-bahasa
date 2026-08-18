@@ -89,6 +89,7 @@ export default function Home() {
         localSlang,
         translations: {
           casual: translations.casual,
+          everyday: translations.everyday,
           polite: translations.polite,
           formal: translations.formal,
         },
@@ -134,6 +135,13 @@ export default function Home() {
       badge: localSlang ? `${activeRegion.flag} ${activeRegion.label}` : "🌐 Universal",
       dot: "bg-green-500",
       data: translations?.casual,
+    },
+    {
+      key: "everyday",
+      label: "Everyday",
+      badge: "Daily Conversation",
+      dot: "bg-amber-500",
+      data: translations?.everyday,
     },
     {
       key: "polite",

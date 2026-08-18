@@ -38,10 +38,12 @@ const REGIONS: { value: IndonesianRegion; label: string; flag: string }[] = [
 interface TranslationStyle {
   indonesian: string;
   literal: string;
+  slangExplanation?: string;
 }
 
 interface TranslationResult {
   casual: TranslationStyle;
+  everyday: TranslationStyle;
   polite: TranslationStyle;
   formal: TranslationStyle;
 }
@@ -73,6 +75,12 @@ const STYLE_CONFIG = [
     label: "Casual",
     icon: "message-circle" as const,
     description: "Like talking with friends",
+  },
+  {
+    key: "everyday" as const,
+    label: "Everyday",
+    icon: "user" as const,
+    description: "Neutral daily conversation",
   },
   {
     key: "polite" as const,
@@ -240,6 +248,7 @@ export default function TranslateScreen() {
         localSlang,
         translations: {
           casual: result.casual,
+          everyday: result.everyday,
           polite: result.polite,
           formal: result.formal,
         },

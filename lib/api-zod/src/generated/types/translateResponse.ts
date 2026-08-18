@@ -10,6 +10,8 @@ import type { TranslationStyle } from "./translationStyle";
 export interface TranslateResponse {
   /** Casual/slang style — like talking with close friends */
   casual: TranslationStyle;
+  /** Everyday style — natural, neutral bahasa Indonesia sehari-hari for ordinary daily interaction */
+  everyday: TranslationStyle;
   /** Polite public style — talking to a stranger in public */
   polite: TranslationStyle;
   /** Formal JW discourse style — suitable for Jehovah's Witnesses meetings/talks */

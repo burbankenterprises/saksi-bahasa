@@ -16,7 +16,7 @@ export const HealthCheckResponse = zod.object({
 });
 
 /**
- * @summary Translate English text to Indonesian in 3 styles
+ * @summary Translate English text to Indonesian in 4 styles
  */
 export const INDONESIAN_REGIONS = [
   "jakarta",
@@ -67,6 +67,18 @@ export const TranslateResponse = zod.object({
         ),
     })
     .describe("Casual\/slang style — like talking with close friends"),
+  everyday: zod
+    .object({
+      indonesian: zod.string().describe("The Indonesian translation"),
+      literal: zod
+        .string()
+        .describe(
+          "Literal word-for-word translation back to English for grammar study",
+        ),
+    })
+    .describe(
+      "Everyday style — natural, neutral bahasa Indonesia sehari-hari for ordinary daily interaction",
+    ),
   polite: zod
     .object({
       indonesian: zod.string().describe("The Indonesian translation"),

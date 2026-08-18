@@ -111,7 +111,7 @@ export function useHealthCheck<
 }
 
 /**
- * @summary Translate English text to Indonesian in 3 styles
+ * @summary Translate English text to Indonesian in 4 styles
  */
 export const getTranslateUrl = () => {
   return `/api/translate`;
@@ -174,7 +174,7 @@ export type TranslateMutationBody = BodyType<TranslateRequest>;
 export type TranslateMutationError = ErrorType<ErrorResponse>;
 
 /**
- * @summary Translate English text to Indonesian in 3 styles
+ * @summary Translate English text to Indonesian in 4 styles
  */
 export const useTranslate = <
   TError = ErrorType<ErrorResponse>,
